@@ -5,12 +5,6 @@ const cors = require("cors");
 const app = express();
 app.use(cors());
 
-const express = require("express");
-const axios = require("axios");
-const cors = require("cors");
-const app = express();
-app.use(cors());
-
 app.get("/getPrices", async (req, res) => {
   const instrumentKeys = req.query.keys;
 
@@ -27,6 +21,7 @@ app.get("/getPrices", async (req, res) => {
         },
         headers: {
           Authorization: `Bearer ${process.env.UPSTOX_ACCESS_TOKEN}`,
+          Accept: "application/json",
         },
       }
     );
@@ -37,4 +32,10 @@ app.get("/getPrices", async (req, res) => {
     console.error("Upstox Error:", error.response?.data || error.message);
     res.status(500).json({ error: "Failed to fetch prices" });
   }
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
