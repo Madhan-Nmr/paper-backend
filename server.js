@@ -5,7 +5,7 @@ const cors = require("cors");
 const app = express();
 app.use(cors());
 
-console.log("RapidAPI backend started");
+console.log("Yahoo Finance backend started");
 
 app.get("/getPrices", async (req, res) => {
 
@@ -24,34 +24,26 @@ app.get("/getPrices", async (req, res) => {
         const parts = k.split("|");
         return parts[1] ? parts[1] + ".NS" : null;
       })
-      .filter(Boolean);
+      .filter(Boolean)
+      .join(",");
+
+    const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}`;
+
+    const response = await axios.get(url);
 
     const results = {};
 
-    for (const symbol of symbols) {
-
-      const response = await axios.get(
-        "https://yh-finance.p.rapidapi.com/stock/v2/get-quote",
-        {
-          params: { symbol },
-          headers: {
-            "X-RapidAPI-Key": process.env.RAPIDAPI_KEY,
-            "X-RapidAPI-Host": "yh-finance.p.rapidapi.com"
-          }
-        }
-      );
-
-      results[symbol] = {
-        last_price: response.data.price?.regularMarketPrice?.raw || 0
+    response.data.quoteResponse.result.forEach(stock => {
+      results[stock.symbol] = {
+        last_price: stock.regularMarketPrice
       };
-
-    }
+    });
 
     res.json({ data: results });
 
   } catch (error) {
 
-    console.error("RapidAPI Error:", error.response?.data || error.message);
+    console.error("Yahoo API error:", error.message);
 
     res.status(500).json({
       error: "Failed to fetch prices"
