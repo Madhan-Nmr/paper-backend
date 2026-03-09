@@ -17,14 +17,15 @@ app.get("/getPrices", async (req, res) => {
 
   try {
 
-    // Convert instrument keys → NSE symbols
+    // Convert instrument keys to stock symbols
     const symbols = keys
       .split(",")
       .map(k => {
         const parts = k.split("|");
-        return parts[1] ? parts[1] + ".NS" : null;
+        return parts[0] === "NSE_EQ" ? parts[1] : null;
       })
       .filter(Boolean)
+      .map(sym => sym + ".NS")
       .join(",");
 
     const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}`;
@@ -43,7 +44,7 @@ app.get("/getPrices", async (req, res) => {
 
   } catch (error) {
 
-    console.error("Yahoo API error:", error.message);
+    console.error("Yahoo API error:", error.response?.data || error.message);
 
     res.status(500).json({
       error: "Failed to fetch prices"
