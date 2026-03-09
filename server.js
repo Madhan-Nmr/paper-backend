@@ -9,21 +9,20 @@ console.log("Yahoo Finance backend started");
 
 app.get("/getPrices", async (req, res) => {
 
-  const keys = req.query.keys;
+  const symbols = req.query.symbols;
 
-  if (!keys) {
-    return res.status(400).json({ error: "Keys required" });
+  if (!symbols) {
+    return res.status(400).json({ error: "Symbols required" });
   }
 
   try {
 
-    const symbols = keys
+    const yahooSymbols = symbols
       .split(",")
-      .map(k => k.split("|")[1])
-      .filter(Boolean)
+      .map(s => s + ".NS")
       .join(",");
 
-    const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}`;
+    const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${yahooSymbols}`;
 
     const response = await axios.get(url);
 
@@ -39,7 +38,7 @@ app.get("/getPrices", async (req, res) => {
 
   } catch (error) {
 
-    console.error("Yahoo API error:", error.message);
+    console.error("Yahoo API error:", error.response?.data || error.message);
 
     res.status(500).json({
       error: "Failed to fetch prices"
