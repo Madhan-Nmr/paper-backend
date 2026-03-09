@@ -5,7 +5,7 @@ const cors = require("cors");
 const app = express();
 app.use(cors());
 
-console.log("Yahoo Finance backend started");
+console.log("Stock backend started");
 
 app.get("/getPrices", async (req, res) => {
 
@@ -17,28 +17,29 @@ app.get("/getPrices", async (req, res) => {
 
   try {
 
-    const yahooSymbols = symbols
-      .split(",")
-      .map(s => s + ".NS")
-      .join(",");
-
-    const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${yahooSymbols}`;
-
-    const response = await axios.get(url);
+    const list = symbols.split(",");
 
     const results = {};
 
-    response.data.quoteResponse.result.forEach(stock => {
-      results[stock.symbol] = {
-        last_price: stock.regularMarketPrice
+    for (const sym of list) {
+
+      const url = `https://stooq.com/q/l/?s=${sym.toLowerCase()}.in&f=sd2t2ohlcv&h&e=json`;
+
+      const response = await axios.get(url);
+
+      const price = response.data?.data?.[0]?.close;
+
+      results[sym] = {
+        last_price: Number(price) || 0
       };
-    });
+
+    }
 
     res.json({ data: results });
 
   } catch (error) {
 
-    console.error("Yahoo API error:", error.response?.data || error.message);
+    console.error("API error:", error.message);
 
     res.status(500).json({
       error: "Failed to fetch prices"
@@ -48,7 +49,7 @@ app.get("/getPrices", async (req, res) => {
 
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
