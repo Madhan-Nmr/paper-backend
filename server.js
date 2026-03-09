@@ -37,14 +37,19 @@ app.get("/getPrices", async (req, res) => {
 
     res.json({ data: results });
 
-  } catch (error) {
+ } catch (error) {
 
-    console.error("API error:", error.message);
+  console.error("API ERROR STATUS:", error.response?.status);
+  console.error("API ERROR DATA:", error.response?.data);
+  console.error("API ERROR MESSAGE:", error.message);
 
-    res.status(500).json({
-      error: "Failed to fetch prices"
-    });
+  res.status(500).json({
+    error: "Failed to fetch prices",
+    status: error.response?.status,
+    details: error.response?.data || error.message
+  });
 
+}
   }
 
 });
