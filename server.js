@@ -5,33 +5,60 @@ const cors = require("cors");
 const app = express();
 app.use(cors());
 
-app.get("/getPrices", async (req, res) => {
-  const instrumentKeys = req.query.keys;
+console.log("RapidAPI backend started");
 
-  if (!instrumentKeys) {
-    return res.status(400).json({ error: "Instrument keys are required" });
+app.get("/getPrices", async (req, res) => {
+
+  const keys = req.query.keys;
+
+  if (!keys) {
+    return res.status(400).json({ error: "Keys required" });
   }
 
   try {
-    const response = await axios.get(
-      "https://api.upstox.com/v2/market-quote/ltp",
-      {
-        params: {
-          instrument_key: instrumentKeys,
-        },
-        headers: {
-          Authorization: `Bearer ${process.env.UPSTOX_ACCESS_TOKEN}`,
-          Accept: "application/json",
-        },
-      }
-    );
 
-    res.json(response.data);
+    // Convert instrument keys → NSE symbols
+    const symbols = keys
+      .split(",")
+      .map(k => {
+        const parts = k.split("|");
+        return parts[1] ? parts[1] + ".NS" : null;
+      })
+      .filter(Boolean);
+
+    const results = {};
+
+    for (const symbol of symbols) {
+
+      const response = await axios.get(
+        "https://yh-finance.p.rapidapi.com/stock/v2/get-quote",
+        {
+          params: { symbol },
+          headers: {
+            "X-RapidAPI-Key": process.env.RAPIDAPI_KEY,
+            "X-RapidAPI-Host": "yh-finance.p.rapidapi.com"
+          }
+        }
+      );
+
+      results[symbol] = {
+        last_price: response.data.price?.regularMarketPrice?.raw || 0
+      };
+
+    }
+
+    res.json({ data: results });
 
   } catch (error) {
-    console.error("Upstox Error:", error.response?.data || error.message);
-    res.status(500).json({ error: "Failed to fetch prices" });
+
+    console.error("RapidAPI Error:", error.response?.data || error.message);
+
+    res.status(500).json({
+      error: "Failed to fetch prices"
+    });
+
   }
+
 });
 
 const PORT = process.env.PORT || 3000;
