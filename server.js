@@ -19,12 +19,16 @@ app.get("/getPrices", async (req, res) => {
 
     const yahooSymbols = symbols
       .split(",")
-      .map(s => s + ".NS")
+      .map(s => s.trim() + ".NS")
       .join(",");
 
     const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${yahooSymbols}`;
 
-    const response = await axios.get(url);
+    const response = await axios.get(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0"
+      }
+    });
 
     const results = {};
 
@@ -38,7 +42,7 @@ app.get("/getPrices", async (req, res) => {
 
   } catch (error) {
 
-    console.error("Yahoo API error:", error.response?.data || error.message);
+    console.error("Yahoo API error:", error.response?.status);
 
     res.status(500).json({
       error: "Failed to fetch prices"
@@ -48,7 +52,7 @@ app.get("/getPrices", async (req, res) => {
 
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
