@@ -5,8 +5,6 @@ const cors = require("cors");
 const app = express();
 app.use(cors());
 
-console.log("Stock backend started");
-
 app.get("/getPrices", async (req, res) => {
 
   const symbols = req.query.symbols;
@@ -17,38 +15,41 @@ app.get("/getPrices", async (req, res) => {
 
   try {
 
-    const list = symbols.split(",");
+    const yahooSymbols = symbols
+      .split(",")
+      .map(s => s.trim() + ".NS")
+      .join(",");
+
+    const response = await axios.get(
+      "https://yahoo-finance15.p.rapidapi.com/api/v1/markets/quote",
+      {
+        params: { symbols: yahooSymbols },
+        headers: {
+          "x-rapidapi-key": process.env.RAPIDAPI_KEY,
+          "x-rapidapi-host": "yahoo-finance15.p.rapidapi.com"
+        }
+      }
+    );
+
     const results = {};
 
-    for (const sym of list) {
-
-      const url = `https://stooq.com/q/l/?s=${sym.toLowerCase()}.in&f=sd2t2ohlcv&h&e=json`;
-
-      const response = await axios.get(url);
-
-      const price = response.data?.data?.[0]?.close;
-
-      results[sym] = {
-        last_price: Number(price) || 0
+    response.data.body.forEach(stock => {
+      results[stock.symbol] = {
+        last_price: stock.regularMarketPrice
       };
-
-    }
+    });
 
     res.json({ data: results });
 
-catch (error) {
+  } catch (error) {
 
-  console.error("API STATUS:", error.response?.status);
-  console.error("API DATA:", error.response?.data);
-  console.error("API MESSAGE:", error.message);
+    console.error(error.response?.data || error.message);
 
-  res.status(500).json({
-    error: "Failed to fetch prices",
-    status: error.response?.status,
-    details: error.response?.data || error.message
-  });
+    res.status(500).json({
+      error: "Failed to fetch prices"
+    });
 
-}
+  }
 
 });
 
