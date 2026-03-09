@@ -5,7 +5,7 @@ const cors = require("cors");
 const app = express();
 app.use(cors());
 
-console.log("Yahoo Finance backend started");
+console.log("Stock backend started");
 
 app.get("/getPrices", async (req, res) => {
 
@@ -42,7 +42,7 @@ app.get("/getPrices", async (req, res) => {
 
   } catch (error) {
 
-    console.error("Yahoo API error:", error.response?.status);
+    console.error("API error:", error.response?.status || error.message);
 
     res.status(500).json({
       error: "Failed to fetch prices"
