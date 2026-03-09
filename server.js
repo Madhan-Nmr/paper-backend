@@ -5,33 +5,46 @@ const cors = require("cors");
 const app = express();
 app.use(cors());
 
-app.get("/getPrice", async (req, res) => {
-  const instrumentKey = req.query.symbol;
+console.log("Yahoo Finance backend started");
 
-  if (!instrumentKey) {
-    return res.status(400).json({ error: "Instrument key is required" });
+app.get("/getPrices", async (req, res) => {
+
+  const symbols = req.query.symbols;
+
+  if (!symbols) {
+    return res.status(400).json({ error: "Symbols required" });
   }
 
   try {
-    const response = await axios.get(
-      `https://api.upstox.com/v2/market-quote/ltp?instrument_key=${instrumentKey}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.UPSTOX_ACCESS_TOKEN}`
-        }
-      }
-    );
 
-    res.json(response.data);
+    const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}`;
+
+    const response = await axios.get(url);
+
+    const results = {};
+
+    response.data.quoteResponse.result.forEach(stock => {
+      results[stock.symbol] = {
+        last_price: stock.regularMarketPrice
+      };
+    });
+
+    res.json({ data: results });
 
   } catch (error) {
-    console.error("Upstox Error:", error.response?.data || error.message);
-    res.status(500).json({ error: "Failed to fetch real price" });
+
+    console.error("Yahoo API error:", error.message);
+
+    res.status(500).json({
+      error: "Failed to fetch prices"
+    });
+
   }
+
 });
 
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
