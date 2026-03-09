@@ -9,13 +9,19 @@ console.log("Yahoo Finance backend started");
 
 app.get("/getPrices", async (req, res) => {
 
-  const symbols = req.query.symbols;
+  const keys = req.query.keys;
 
-  if (!symbols) {
-    return res.status(400).json({ error: "Symbols required" });
+  if (!keys) {
+    return res.status(400).json({ error: "Keys required" });
   }
 
   try {
+
+    const symbols = keys
+      .split(",")
+      .map(k => k.split("|")[1])
+      .filter(Boolean)
+      .join(",");
 
     const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}`;
 
