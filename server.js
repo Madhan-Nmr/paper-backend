@@ -7,6 +7,8 @@ app.use(cors());
 
 const PORT = process.env.PORT || 3000;
 
+const API_KEY = "demo"; // replace with your AlphaVantage key later
+
 app.get("/", (req, res) => {
   res.send("Stock API running");
 });
@@ -16,26 +18,20 @@ app.get("/price/:symbol", async (req, res) => {
 
   try {
 
-    const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}.NS`;
+    const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}.BSE&apikey=${API_KEY}`;
 
-    const response = await axios.get(url, {
-      headers: {
-        "User-Agent": "Mozilla/5.0"
-      }
-    });
+    const response = await axios.get(url);
 
-    const result = response.data.quoteResponse.result;
+    const data = response.data["Global Quote"];
 
-    if (!result || result.length === 0) {
+    if (!data) {
       return res.json({ error: "Stock not found" });
     }
 
-    const stock = result[0];
-
     res.json({
       symbol: symbol,
-      price: stock.regularMarketPrice,
-      change: stock.regularMarketChangePercent
+      price: data["05. price"],
+      change: data["10. change percent"]
     });
 
   } catch (error) {
@@ -45,5 +41,5 @@ app.get("/price/:symbol", async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log("Server running on port " + PORT);
+  console.log(`Server running on port ${PORT}`);
 });
