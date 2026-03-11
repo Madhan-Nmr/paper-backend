@@ -34,7 +34,7 @@ app.get("/price/:symbol", async (req, res) => {
     });
 
   } catch (error) {
-    console.log(error.message);
+    console.log("API ERROR:", error.message);
     res.json({ error: "Failed to fetch price" });
   }
 });
