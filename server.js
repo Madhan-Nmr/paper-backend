@@ -5,56 +5,47 @@ const cors = require("cors");
 const app = express();
 app.use(cors());
 
-app.get("/getPrices", async (req, res) => {
+const PORT = process.env.PORT || 3000;
 
-  const symbols = req.query.symbols;
+app.get("/", (req, res) => {
+  res.send("Stock API running");
+});
 
-  if (!symbols) {
-    return res.status(400).json({ error: "Symbols required" });
-  }
+app.get("/price/:symbol", async (req, res) => {
+
+  const symbol = req.params.symbol;
 
   try {
 
-    const yahooSymbols = symbols
-      .split(",")
-      .map(s => s.trim() + ".NS")
-      .join(",");
-
     const response = await axios.get(
-      "https://yahoo-finance15.p.rapidapi.com/api/v1/markets/quote",
+      `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}.NS`,
       {
-        params: { symbols: yahooSymbols },
         headers: {
-          "x-rapidapi-key": process.env.RAPIDAPI_KEY,
-          "x-rapidapi-host": "yahoo-finance15.p.rapidapi.com"
+          "User-Agent": "Mozilla/5.0"
         }
       }
     );
 
-    const results = {};
+    const data = response.data.quoteResponse.result[0];
 
-    response.data.body.forEach(stock => {
-      results[stock.symbol] = {
-        last_price: stock.regularMarketPrice
-      };
+    res.json({
+      symbol: symbol,
+      price: data.regularMarketPrice,
+      change: data.regularMarketChangePercent
     });
-
-    res.json({ data: results });
 
   } catch (error) {
 
-    console.error(error.response?.data || error.message);
+    console.log(error.response?.data || error.message);
 
-    res.status(500).json({
-      error: "Failed to fetch prices"
+    res.json({
+      error: "Failed to fetch price"
     });
 
   }
 
 });
 
-const PORT = process.env.PORT || 10000;
-
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log("Server running on port " + PORT);
 });
