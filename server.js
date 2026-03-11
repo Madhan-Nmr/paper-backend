@@ -5,25 +5,14 @@ app.get("/price/:symbol", async (req, res) => {
   try {
 
     const response = await axios.get(
-      `https://query1.finance.yahoo.com/v7/finance/quote`,
-      {
-        params: {
-          symbols: `${symbol}.NS`
-        },
-        headers: {
-          "User-Agent": "Mozilla/5.0",
-          "Accept": "application/json"
-        }
-      }
+      `https://api.allorigins.win/raw?url=https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}.NS`
     );
 
-    const result = response.data.quoteResponse.result;
+    const data = response.data.quoteResponse.result[0];
 
-    if (!result || result.length === 0) {
+    if (!data) {
       return res.json({ error: "Stock not found" });
     }
-
-    const data = result[0];
 
     res.json({
       symbol: symbol,
@@ -33,7 +22,7 @@ app.get("/price/:symbol", async (req, res) => {
 
   } catch (error) {
 
-    console.log("API ERROR:", error.response?.data || error.message);
+    console.log(error.message);
 
     res.json({
       error: "Failed to fetch price"
