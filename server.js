@@ -19,7 +19,7 @@ app.get("/price/:symbol", async (req, res) => {
     const url =
       "https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=" +
       symbol +
-      ".BSE&apikey=demo";
+      ".BSE&apikey=DDT1CCLC5V9BHRQX.";
 
     const response = await axios.get(url);
 
