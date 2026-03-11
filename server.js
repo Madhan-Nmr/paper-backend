@@ -7,8 +7,6 @@ app.use(cors());
 
 const PORT = process.env.PORT || 3000;
 
-const API_KEY = "demo"; // replace with your AlphaVantage key later
-
 app.get("/", (req, res) => {
   res.send("Stock API running");
 });
@@ -18,28 +16,27 @@ app.get("/price/:symbol", async (req, res) => {
 
   try {
 
-    const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}.BSE&apikey=${API_KEY}`;
+    const url =
+      "https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=" +
+      symbol +
+      ".BSE&apikey=demo";
 
     const response = await axios.get(url);
 
-    const data = response.data["Global Quote"];
-
-    if (!data) {
-      return res.json({ error: "Stock not found" });
-    }
-
-    res.json({
-      symbol: symbol,
-      price: data["05. price"],
-      change: data["10. change percent"]
-    });
+    res.json(response.data);
 
   } catch (error) {
-    console.log("API ERROR:", error.message);
-    res.json({ error: "Failed to fetch price" });
+
+    console.log("FULL ERROR:", error.message);
+
+    res.json({
+      error: "External API failed",
+      details: error.message
+    });
+
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log("Server running on port " + PORT);
 });
