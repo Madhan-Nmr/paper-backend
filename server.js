@@ -1,44 +1,37 @@
-const express = require("express");
-const axios = require("axios");
-const cors = require("cors");
-
-const app = express();
-app.use(cors());
-
-const PORT = process.env.PORT || 3000;
-
-app.get("/", (req, res) => {
-  res.send("Stock API running");
-});
-
 app.get("/price/:symbol", async (req, res) => {
-  const symbol = req.params.symbol.toLowerCase();
+
+  const symbol = req.params.symbol.toUpperCase();
 
   try {
-    const response = await axios.get(
-      `https://stooq.com/q/l/?s=${symbol}.in&f=sd2t2ohlcv&h&e=json`
-    );
 
-    const data = response.data[0];
+    const url =
+      "https://api.allorigins.win/raw?url=" +
+      encodeURIComponent(
+        `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}.NS`
+      );
+
+    const response = await axios.get(url);
+
+    const data = response.data.quoteResponse.result[0];
 
     if (!data) {
       return res.json({ error: "Stock not found" });
     }
 
     res.json({
-      symbol: symbol.toUpperCase(),
-      price: data.close,
-      open: data.open,
-      high: data.high,
-      low: data.low
+      symbol: symbol,
+      price: data.regularMarketPrice,
+      change: data.regularMarketChangePercent
     });
 
   } catch (error) {
-    console.log("API ERROR:", error.message);
-    res.json({ error: "Failed to fetch price" });
-  }
-});
 
-app.listen(PORT, () => {
-  console.log("Server running on port " + PORT);
+    console.log("API ERROR:", error.message);
+
+    res.json({
+      error: "Failed to fetch price"
+    });
+
+  }
+
 });
