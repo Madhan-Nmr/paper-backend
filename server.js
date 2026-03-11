@@ -17,10 +17,10 @@ app.get("/price/:symbol", async (req, res) => {
   try {
 
     const response = await axios.get(
-      `https://api.allorigins.win/raw?url=https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}.NS`
+      `https://stooq.com/q/l/?s=${symbol.toLowerCase()}.in&f=sd2t2ohlcv&h&e=json`
     );
 
-    const data = response.data.quoteResponse.result[0];
+    const data = response.data[0];
 
     if (!data) {
       return res.json({ error: "Stock not found" });
@@ -28,8 +28,10 @@ app.get("/price/:symbol", async (req, res) => {
 
     res.json({
       symbol: symbol,
-      price: data.regularMarketPrice,
-      change: data.regularMarketChangePercent
+      price: data.close,
+      open: data.open,
+      high: data.high,
+      low: data.low
     });
 
   } catch (error) {
