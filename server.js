@@ -1,30 +1,19 @@
-const express = require("express");
-const axios = require("axios");
-const cors = require("cors");
-
-const app = express();
-app.use(cors());
-
-const PORT = process.env.PORT || 3000;
-
-app.get("/", (req, res) => {
-  res.send("Stock API running");
-});
-
 app.get("/price/:symbol", async (req, res) => {
   const symbol = req.params.symbol.toUpperCase();
 
   try {
+
     const response = await axios.get(
       `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}.NS`,
       {
         headers: {
           "User-Agent": "Mozilla/5.0"
-        }
+        },
+        timeout: 5000
       }
     );
 
-    const result = response.data.quoteResponse.result;
+    const result = response.data?.quoteResponse?.result;
 
     if (!result || result.length === 0) {
       return res.json({ error: "Stock not found" });
@@ -39,14 +28,13 @@ app.get("/price/:symbol", async (req, res) => {
     });
 
   } catch (error) {
-    console.log("API ERROR:", error.message);
+
+    console.log("FULL ERROR:", error.message);
 
     res.json({
-      error: "Failed to fetch price"
+      error: "Failed to fetch price",
+      details: error.message
     });
-  }
-});
 
-app.listen(PORT, () => {
-  console.log("Server running on port " + PORT);
+  }
 });
