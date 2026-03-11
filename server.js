@@ -16,30 +16,34 @@ app.get("/price/:symbol", async (req, res) => {
 
   try {
 
-    const response = await axios.get(
-      `https://stooq.com/q/l/?s=${symbol.toLowerCase()}.in&f=sd2t2ohlcv&h&e=json`
-    );
+    const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}.NS`;
 
-    const data = response.data[0];
+    const response = await axios.get(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0"
+      }
+    });
 
-    if (!data) {
+    const result = response.data.quoteResponse.result;
+
+    if (!result || result.length === 0) {
       return res.json({ error: "Stock not found" });
     }
 
+    const stock = result[0];
+
     res.json({
       symbol: symbol,
-      price: data.close,
-      open: data.open,
-      high: data.high,
-      low: data.low
+      price: stock.regularMarketPrice,
+      change: stock.regularMarketChangePercent
     });
 
   } catch (error) {
-    console.log(error.message);
+    console.log("API ERROR:", error.message);
     res.json({ error: "Failed to fetch price" });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log("Server running on port " + PORT);
 });
