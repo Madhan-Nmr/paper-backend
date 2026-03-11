@@ -10,6 +10,7 @@ const PORT = process.env.PORT || 3000;
 app.get("/", (req, res) => {
   res.send("Stock API running");
 });
+
 app.get("/price/:symbol", async (req, res) => {
   const symbol = req.params.symbol.toLowerCase();
 
@@ -29,12 +30,15 @@ app.get("/price/:symbol", async (req, res) => {
       price: data.close,
       open: data.open,
       high: data.high,
-      low: data.low,
-      volume: data.volume
+      low: data.low
     });
 
   } catch (error) {
-    console.log("API ERROR:", error.message);
+    console.log(error.message);
     res.json({ error: "Failed to fetch price" });
   }
+});
+
+app.listen(PORT, () => {
+  console.log("Server running on port " + PORT);
 });
